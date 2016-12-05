@@ -1,0 +1,23 @@
+Package: mfa
+Type: Package
+Title: Provide functions to conduct Multiple Factor Analysis
+Version: 0.1
+Date: 2016-11-18
+Author: Jingyi Tan, Yizhi Mao, Cheng Li, Wei Jin
+Maintainer: Wei Jin <Jinw@berkeley.edu>
+Description: The package provide multiple factor analysis for multitable and multiblock data sets.
+License: BSD 2.0
+Encoding: UTF-8
+LazyData: TRUE
+RoxygenNote: 5.0.1
+Imports:
+    ggplot2,
+    grid,
+    gridExtra
+Suggests: 
+    knitr,
+    rmarkdown,
+    devtools,
+    roxygen2,
+    testthat
+VignetteBuilder: knitr

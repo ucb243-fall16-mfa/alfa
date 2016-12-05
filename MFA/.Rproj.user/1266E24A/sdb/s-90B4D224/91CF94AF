@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(devtools)\ndevtools::document()\ndevtools::check_man()\ndevtools::test()\ndevtools::build()\ndevtools::install()\nurl=\"https://raw.githubusercontent.com/ucb-stat243/stat243-fall-2016/master/problem-sets/final-project/data/wines.csv\"\ndata=read.csv(file=url, header = TRUE, sep = \",\")\n\nmfa_gen()\nsets <- list(1:6, 7:12, 13:18, 19:23, 24:29, 30:34, 35:38, 39:44, 45:49, 50:53)\ndatanum <- data[,-1]\nwine <- mfa_gen(data = datanum, sets = sets)\n",
+    "created" : 1480457225124.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "410190732",
+    "id" : "91CF94AF",
+    "lastKnownWriteTime" : 140736583980212,
+    "last_content_update" : 1480458878783,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

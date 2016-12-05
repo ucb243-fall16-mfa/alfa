@@ -1,0 +1,6 @@
+.DS_Store
+.Rhistory
+.RData
+.Ruserdata
+*.tar.gz
+MFA/my-vignette/*.html

@@ -1,0 +1,259 @@
+---
+title: "R Package for Multiple Factor Analysis"
+subtitle: "STAT 243: Final Project"
+author: "Wei Jin, Cheng Li, Yizhi Mao, and Jingyi Tan"
+output: 
+  ioslides_presentation:
+    widescreen: true
+---
+
+```{r, include=FALSE}
+library(mfa)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+url="https://raw.githubusercontent.com/ucb-stat243/stat243-fall-2016/master/problem-sets/final-project/data/wines.csv"
+data=read.csv(file=url, header = TRUE, sep = ",")
+sets <- list(1:6, 7:12, 13:18, 19:23, 24:29, 30:34, 35:38, 39:44, 45:49, 50:53)
+datanum <- data[,-1]
+```
+
+## Introduction of Mutiple Factor Analysis (MFA) {.larger}
+Multiple factor analysis (MFA) is used for analyzing multiple data tables that measure sets of variables collected on the same observations. 
+
+There are two main steps in MFA: 
+
+1. Conduct PCA on each data table (or block, subtable), and ‘normalizes’ each data table by dividing all its elements by the first singular value obtained from its PCA
+
+2. Concatenate all the normalized data tables into a grand data table, and conduct generalized PCA on this grand table. 
+
+The outcome of MFA analysis includes: eigenvalues, factor score for obeservations, partial factor score for each data table, and loadings for variables.
+
+## Data Set: wine.csv
+The data are from a (fictitious) wine tasting experiment. 
+
+Each of the 10 experts were asked to evaluate the 12 wines, in terms of four basic variables and personalized additional variables.
+
+The structure of the dataset, or grand table, can be described as:
+
+  - The grand table is a concatenation of 10 subtables, representing the data for each experts
+  - Rows are the data for one specific observation (ie wine)
+  - Columns are the data for one specific variable
+
+## Main Function to Compute MFA: {.smaller}
+`mfa_gen(data, sets, ncomps = NULL, center = TRUE, scale = TRUE)`
+
+The argument includes:
+
+- `data`: the grand-table containing all blocks
+- `sets`: a list containing the indexes for each block
+- `ncomps`: number of principle components to keep (if not provided, all principle components are kept)
+- `center`: either a logical value or a numeric vector of length equal to the number of columns of `data`
+- `scale`: either a logical value or a numeric vector of length equal to the number of columns of `data`
+
+```{r}
+wine <- mfa_gen(datanum, sets, ncomps = 2)
+```
+
+## Main Function to Compute MFA: {.smaller}
+
+The output of `mfa_gen` function is a S3 `mfa` object containing eigenvalues, factor score, partial factor scores, loadings, the matrix `A` and `sets` (from the input). We stored `A` to compute the contribution of variables in later function called `contri_var`.
+
+For example, we can extract the factor score from the `mfa` object:
+```{r}
+wine$FactorScore
+```
+
+## Print Method: {.smaller}
+`print(object, subtable = NULL, ...)`
+
+The print method is designed to print out: 
+
+- Eigenvalues of an MFA object
+- Partial factor scores of a subtable if the user specifies the index of the subtable as the argument `subtable`
+- By default, `subtable = NULL`, and the partial factore scores are not presented.
+
+```{r}
+# print the eigenvalues
+print(wine)
+```
+
+## Print Method: {.smaller}
+`print(object, subtable = NULL, ...)` 
+
+```{r}
+# print the eigenvalues and the partical factor scores for the 6th subtable
+print(wine, subtable = 6)
+```
+
+## Plot Method: {.smaller} 
+`plot(mfa, dim1 = 1, dim2 = 2, type = 1, scale_x = 1, scale_y = 1, text = NULL, cat = NULL, var = NULL)`
+
+Given the indices of extracted PCs as 2 dimensions (argument `dim1`, `dim2`), the plot method plots graphs of:
+
+- factor scores (the compromise of the tables) if argument `type = 1`
+- partial factor scores if argument `type = 2`
+- variable loadings if argument `type = 3`
+- partial factor scores and variable loadings if argument `type = 4`
+
+To adjust the scale of the graphs, change the value of arguments `scale_x`, `scale_y`. 
+
+The `text` argument allows users to define lables for variables as a vector.
+
+The `cat` argument allows users to define categories to group the observations as a vector.
+
+The `var` argument allows users to indicate the graphs of specific subtables as a numerical vector of the indices of subtables.
+
+## Examples:
+
+Plot the compromise of the tables (type = 1) :
+```{r, dpi=60, fig.align='center'}
+# define the categories to group the observations
+cat <- list("New Zealand" = 1:4, "Canada" = 5:8, "France" = 9:12)
+
+plot(mfa = wine, cat = cat)
+```
+
+---
+
+Plot the partial factor scores (type = 2) for the 8th subtable with the categories to group the observations:
+```{r, dpi=80, fig.align='center'}
+# define the categories to group the observations
+plot(mfa = wine, dim1 = 1, dim2 = 2, type = 2, cat = cat, var = 8)
+```
+
+
+---
+
+Plot the variable loadings (type = 3) for the 3rd subtable without labels for variables:
+```{r, dpi=90, fig.align='center'}
+plot(mfa = wine, type = 3, var = 3)
+```
+
+---
+
+Plot the partial factor scores and variable loadings (type = 4) for the 1st subtable with the categories to group the observations:
+```{r, dpi=90, fig.align='center'}
+plot(mfa = wine, type = 4, cat = cat, scale_x = 1/0.8, scale_y = 1/0.4, var = 1)
+```
+
+## Eigenvalues Method: 
+`eigenval(x)`
+
+It is the method applied to the target data set that display a table including informations of singular values, eigenvalues, cumulative, percentage of intertia, cumulative percentage of inertia for the extracted components.
+
+```{r}
+eigenval(wine)
+```
+
+## Contributions Method: {.smaller}
+`contri_obs(x)`
+
+The `contri_obs` method calculates and present the contribution of observations to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith observation to the jth component. The equation is the following:
+
+$ctr_{i,l} = \displaystyle{\frac{m_i \times f^2_{i,l}}{\lambda_l}}$
+
+Here is how to use it:
+```{r}
+head(contri_obs(wine))
+```
+
+## Contributions Method: {.smaller}
+`contri_var(x)`
+
+The `contri_var` method calculates and present the contribution of variables to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith variable to the jth component. The equation is the following:
+
+$ctr_{j,l} = \alpha_j \times q^2_{j,l}$
+
+Here is how to use it:
+```{r}
+head(contri_var(wine))
+```
+
+## Contributions Method: {.smaller}
+`contri_table(x)`
+
+The `contri_table` method calculates and present the contribution of subtables to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith subtable to the jth component. The equation is the following:
+
+$ctr_{k,l} = \sum_{j}^{J_{[k]}} ctr_{j,l}$
+
+Here is how to use it:
+```{r}
+head(contri_table(wine))
+```
+
+## Coefficient Function: {.smaller}
+RV is the function to compute Escoufier's $R_V$ coefficient, which reflecst the amount of variance shared by two matrices. The equation to compute $R_V$ coefficient between data table $k$ and $k'$ is
+
+$R_{Vk,k'} = \frac{\operatorname{trace} \left( \left(X_{[k]} X^{T}_{[k]}\right) \times \left(X_{[k']} X^{T}_{[k']}\right)\right)}{\sqrt{\operatorname{trace} \left(\left(X_{[k]} X^{T}_{[k]}\right) \times \left(X_{[k]} X^{T}_{[k]}\right)\right) \times \operatorname{trace} \left(\left(X_{[k']} X^{T}_{[k']}\right) \times \left(X_{[k']} X^{T}_{[k']}\right)\right)}}$
+
+`RV(table1,table2)`
+
+RV(table1, table2) takes input of two tables, and compute the $R_V$ coefficent.
+```{r}
+RV(datanum[,1:6],datanum[,7:12])
+```
+
+## Coefficient Function: {.smaller}
+
+` RV_table(dataset, sets)`
+
+RV_table(dataset, sets) takes input of a data set and a list with sets of variables, and returns a matrix of $R_V$ coefficients. Each element of the matrix corresponds to the $R_V$ coefficient of each pair of tables.
+
+```{r}
+RV_table(datanum,sets=list(1:6,7:50,50:53))
+```
+
+## $L_g$ Coefficient Function: {.smaller}
+`Lg_table(dataset, sets)`
+
+- The $L_g$ coefficient is another coefficient to evaluate the similarity between two tables.
+
+- This coefficient reflects the MFA normalization and takes positive values.
+
+- The detailed formula is:
+
+$L_{g(k,k')} = \operatorname{trace} \left( \left(X_{[k]} X^{T}_{[k]}\right) \times \left(X_{[k']} X^{T}_{[k']}\right)\right) \times \left(\alpha_{k} \times \alpha_{k'}\right)$
+
+where $X_{[k]}$ and $X_{[k']}$ are the data of two subtables, and $\alpha_{k}$ and $\alpha_{k'}$ are their corresponding inversed first squared singular value.
+
+The following is how to use it:
+```{r}
+Lg_table(datanum, sets = list(sets[[1]], sets[[2]]))
+```
+
+## Bootstrap Function: 
+`bootstrap(L,userset,dataset,ncomp)`
+
+The arguments includes:
+
+`L`: the size of bootstrap
+`dataset`: the grand-table containing all blocks
+`userset`: a list containing the indexes for each block
+`ncomp`: number of principle components to keep (if not provided, all principle components are kept)
+
+The output of `bootstrap` function is the bootstrap ratio.
+
+## Bootstrap Function: {.smaller}
+
+Here is how to perform 1000 bootstrap and get the bootstrap ratios of the 12 wines.
+```{r}
+bootstrap(L = 1000, userset = sets, dataset = datanum, ncomp = 2)
+```
+
+
+## Shiny App: {.smaller}
+
+Output includes: 
+
+- Bar-chart for eigenvalues
+- Scatter plot for Factor Scores
+- Scatter plot for Partial Factor Scores
+- Scatter plot for Loadings
+- Scatter plot for Partial Factor Scores together with Loadings
+
+Default dataset: wine dataset
+
+The shiny app is published on `https://chengli.shinyapps.io/r_243_final_shiny/`.
+
+## Thank you!

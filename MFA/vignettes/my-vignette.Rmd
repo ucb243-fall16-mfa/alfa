@@ -1,0 +1,186 @@
+---
+title: "MFA Vignette"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Load the package:
+```{r}
+library(mfa)
+```
+
+## Construct Function
+
+Here is how to create an MFA object based on the wine dataset:
+```{r}
+# read data
+url="https://raw.githubusercontent.com/ucb-stat243/stat243-fall-2016/master/problem-sets/final-project/data/wines.csv" 
+data=read.csv(file=url, header = TRUE, sep = ",")
+# exclude the first column since it is not numeric
+datanum <- data[,-1]
+
+# a list of numeric vectors with the position of the active variables
+# to partition the grand table into 10 subtables
+sets <- list(1:6, 7:12, 13:18, 19:23, 24:29, 30:34, 35:38, 39:44, 45:49, 50:53)
+
+# create object 'wine' of class mfa
+wine <- mfa_gen(data = datanum, sets = sets, ncomps = 2)
+```
+
+The wine object is a list with the following elements:
+- "sets": user-defined list of vectors with the position of active variables to partition the grand table into subtables
+- "eigenvalues": vector of eigenvalues with the length of user-defined `ncomps`
+- "FactorScore": factor score of Generalized Singular Value Decomposition (GSVD)
+- "Loadings" : variable loadings of GSVD
+- "PartialFactorScores": list of partical factor scores of subtables
+- "MatrixA": diagnal matrix of the inversed squared singular values 
+
+
+## Print Method
+
+The print method is designed to print out an MFA object's eigenvalues, and partial factor scores of a subtable if the user specifies the index of the subtable as the argument `subtale`. By default, `subtable = NULL`, and the partial factore scores are not presented.
+
+Here is how to print the eigenvalues of the MFA object wine:
+```{r}
+print(wine)
+```
+
+Here is how to print the eigenvalues and the partical factor scores for the $6^{th}$ subtable:
+```{r}
+print(wine, subtable = 6)
+```
+
+
+## Plot Method
+
+Given the indices of extracted PCs as 2 dimensions (argument `dim1`, `dim2`), the plot method plots graphs of:
+- factor scores (the compromise of the tables) if argument `type = 1`
+- partial factor scores if argument `type = 2`
+- variable loadings if argument `type = 3`
+- partial factor scores and variable loadings if argument `type = 4`
+
+To adjust the scale of the graphs, change the value of arguments `scale_x`, `scale_y`. 
+
+The `text` argument allows users to define lables for variables as a vector.
+
+The `cat` argument allows users to define categories to group the observations as a vector.
+
+The `var` argument allows users to indicate the graphs of specific subtables as a numerical vector of the indices of subtables.
+
+Here is how to plot the partial factor scores (type = 2) for the 8th subtable with the categories to group the observations:
+```{r, dpi=180, fig.align='center'}
+library(ggplot2)
+library(grid)
+library(gridExtra)
+
+# define the categories to group the observations
+cat <- list("New Zealand" = 1:4, "Canada" = 5:8, "France" = 9:12)
+
+plot(mfa = wine, dim1 = 1, dim2 = 2, type = 2, cat = cat, var = 8)
+```
+
+Here is how to plot the variable loadings (type = 3) for the 3rd subtable without labels for variables:
+```{r, dpi=180, fig.align='center'}
+plot(mfa = wine, dim1 = 1, dim2 = 2, type = 3, var = 3)
+```
+
+Plot the variable loadings (type = 3) for the 6th subtable with labels (defined by users) for variables:
+```{r, dpi=180, fig.align='center'}
+# define the labels for variables
+dftext <- c("Cat Pee", "Passion Fruit", "Green Pepper", "Mineral", 
+            "Smoky", "Cirtrus", "Cat Pee", "Passion Fruit", "Green Pepper",
+            "Mineral","Tropical", "Leafy", "Cat Pee", "Passion Fruit", 
+            "Green Pepper", "Mineral", "Grassy", "Flinty", "Cat Pee", 
+            "Passion Fruit", "Green Pepper", "Mineral", "Leafy", "Cat Pee",
+            "Passion Fruit", "Green Pepper", "Mineral", "Vegetal", "Hay", 
+            "Cat Pee", "Passion Fruit", "Green Pepper", "Mineral", "Melon", 
+            "Cat Pee", "Passion Fruit", "Green Pepper", "Mineral", "Cat Pee", 
+            "Passion Fruit", "Green Pepper", "Mineral", "Grass", "Smoky", 
+            "Cat Pee", "Passion Fruit", "Green Pepper", "Mineral", "Peach", 
+            "Cat Pee", "Passion Fruit", "Green Pepper", "Mineral")
+
+plot(mfa = wine, dim1 = 1, dim2 = 2, type = 3, text = dftext, var = 6)
+```
+
+Plot the partial factor scores and variable loadings (type = 4) for the 1st subtable with the categories to group the observations:
+```{r, dpi=180, fig.align='center'}
+plot(mfa = wine, type = 4, cat = cat, scale_x = 1/0.8, scale_y = 1/0.4, var = 1)
+```
+
+
+## Eigenvalue Summary
+
+The `eigenval` method creates a table that summarizes information about the obtained eigenvalues of the object wine. 
+
+Here is how to use it:
+```{r}
+eigenval(wine)
+```
+
+
+## Contributions
+
+The `contri_obs` method calculates and present the contribution of observations to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith observation to the jth component. 
+
+Here is how to use it:
+```{r}
+contri_obs(wine)
+```
+
+The `contri_var` method calculates and present the contribution of variables to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith variable to the jth component. 
+
+Here is how to use it:
+```{r}
+contri_var(wine)
+```
+
+The `contri_table` method calculates and present the contribution of subtables to the extracted components (dimensions). The [i,j] element of the printed matrix is the contribution of the ith subtable to the jth component. 
+
+Here is how to use it:
+```{r}
+contri_table(wine)
+```
+
+
+## RV coefficients and Lg coefficients
+
+RV() function calculates the Rv coefficient between 2 specific tables.
+
+```{r}
+# define 2 tables
+t1 <- matrix(c(2, 4, 3, 1, 5, 7))
+t2 <- matrix(c(1, 8, 9, 10, 4, 6))
+
+# calculate the Rv coefficient between t1 and t2
+RV(table1 = t1, table2 = t2)
+```
+
+
+To calculate the Rv coefficients between the specified subtables in a grand table (datanum):
+```{r}
+RV_table(datanum, sets = list(sets[[1]], sets[[2]]))
+```
+
+
+To calculate the Lg coefficients between the specified subtables in a grand table (datanum):
+```{r}
+Lg_table(datanum, sets = list(sets[[1]], sets[[2]]))
+```
+
+## Bootstrap
+
+The bootstrap function performs bootstrap by `L` times, and get L estimated bootstrapped factor scores. The grand table `dataset` is partitioned by argument `userset`. The bootstrap ratios of observations are calculated accordingly. These ratios can be used to find the observation that reliably contribute to a given component. 
+
+Here is how to perform 1000 bootstrap and get the bootstrap ratios of the 12 wines.
+```{r}
+# a list of numeric vectors with the position of the active variables
+# to partition the grand table into 10 subtables
+sets <- list(1:6, 7:12, 13:18, 19:23, 24:29, 30:34, 35:38, 39:44, 45:49, 50:53)
+
+bootstrap(L = 1000, userset = sets, dataset = datanum, ncomp = 2)
+```
