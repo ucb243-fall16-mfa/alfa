@@ -109,7 +109,7 @@ The `var` argument allows users to indicate the graphs of specific subtables as 
 Plot the compromise of the tables (type = 1) :
 ```{r, dpi=60, fig.align='center'}
 # define the categories to group the observations
-cat <- list("New Zealand" = 1:4, "Canada" = 5:8, "France" = 9:12)
+cat <- list("New Zealand" = 1:4, "France" = 5:8, "Canada" = 9:12)
 
 plot(mfa = wine, cat = cat)
 ```
