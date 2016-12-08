@@ -36,7 +36,7 @@ ui <- fluidPage(
         checkboxInput('Check5','Customize group names?',FALSE),
         conditionalPanel(condition = 'input.Check5',
                         textInput('groupname','Enter a vector(comma delimmited) indicates the names of each group',
-                                  "New Zealand,Canada,France")
+                                  "New Zealand,France,Canada")
                         ),
         checkboxInput('Check1','Bar-chart of Eigenvalues',FALSE),
         checkboxInput('Check2','Scatterplot of Factor Scores',FALSE),
