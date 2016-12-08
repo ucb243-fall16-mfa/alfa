@@ -79,7 +79,7 @@ library(grid)
 library(gridExtra)
 
 # define the categories to group the observations
-cat <- list("New Zealand" = 1:4, "Canada" = 5:8, "France" = 9:12)
+cat <- list("New Zealand" = 1:4, "France" = 5:8, "Canada" = 9:12)
 
 plot(mfa = wine, dim1 = 1, dim2 = 2, type = 2, cat = cat, var = 8)
 ```
